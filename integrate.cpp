@@ -32,8 +32,7 @@ double integrate_parallel(double a, double b, long n)
     // The cost of f(x) spikes over part of the domain, so a dynamic
     // schedule helps distribute heavier iterations more evenly across
     // threads.
-#pragma omp parallel for default(none) shared(a, h, n) reduction(+ : sum) \
-    schedule(dynamic, 64)
+#pragma omp parallel for default(none) shared(a, h, n) reduction(+ : sum) schedule(dynamic, 64)
     for (long i = 1; i < n; ++i) {
         const double x = a + (static_cast<double>(i) * h);
         sum += f(x);

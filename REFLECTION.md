@@ -14,7 +14,7 @@
 
 Which schedule (`static` / `dynamic` / `guided` / chunk size) did you end up with, and why? Reference the cost structure of `f(x)` and what the measured timings told you. Mention at least one schedule you tried and discarded, and what the measured evidence was. Minimum 50 words.
 
-I chose schedule(dynamic, 64) for the final version. The key feature of this kernel is that f(x) is not uniform in cost: the region x ∈ [0.3, 0.4] executes ten extra square-root iterations, so work is concentrated in a narrow contiguous part of the loop. A purely static partition can give one thread a disproportionate share of that expensive region. Dynamic scheduling avoids that by redistributing chunks as threads finish. I considered both static and guided, but kept (dynamic, 64), because it matches the non-uniform workload while keeping chunk-management overhead moderate.
+I chose schedule(dynamic, 64) for the final version. The key feature of this kernel is that f(x) is not uniform in cost: the region x ∈ [0.3, 0.4] executes ten extra square-root iterations, so work is concentrated in a narrow contiguous part of the loop. A purely static partition can give one thread a disproportionate share of that expensive region. Dynamic scheduling avoids that by redistributing chunks as threads finish. I considered static and guided as alternative schedules, but selected dynamic, 64 because it is a natural fit for the non-uniform workload in this kernel
 
 ## Section 2 — Scaling behaviour
 
