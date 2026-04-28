@@ -14,13 +14,13 @@
 
 Which schedule (`static` / `dynamic` / `guided` / chunk size) did you end up with, and why? Reference the cost structure of `f(x)` and what the measured timings told you. Mention at least one schedule you tried and discarded, and what the measured evidence was. Minimum 50 words.
 
-I chose `schedule(dynamic, 64)` for the final version. The key feature of this kernel is that `f(x)` is not uniform in cost: the region `x in [0.3, 0.4]` executes ten extra square-root iterations, so work is concentrated in a narrow contiguous part of the loop. A purely static partition can give one thread a disproportionate share of that expensive region. Dynamic scheduling avoids that by redistributing chunks as threads finish. I considered both `static` and `guided`, but kept `dynamic, 64` because it matches the non-uniform workload while keeping chunk-management overhead moderate.
+I chose schedule(dynamic, 64) for the final version. The key feature of this kernel is that f(x) is not uniform in cost: the region x ∈ [0.3, 0.4] executes ten extra square-root iterations, so work is concentrated in a narrow contiguous part of the loop. A purely static partition can give one thread a disproportionate share of that expensive region. Dynamic scheduling avoids that by redistributing chunks as threads finish. I considered both static and guided, but kept (dynamic, 64), because it matches the non-uniform workload while keeping chunk-management overhead moderate.
 
 ## Section 2 — Scaling behaviour
 
 Looking at your `tables.csv`, where does your speedup curve depart from ideal (linear)? What does that tell you about overhead, memory bandwidth, or load balance for this kernel? Minimum 50 words.
 
-My measured times were 3.54 s at 1 thread, 0.38 s at 16 threads, 0.20 s at 64 threads, and 0.13 s at 128 threads. That gives speedups of 9.32x, 17.70x, and 27.23x respectively. The curve is clearly sublinear, and efficiency falls from 0.58 at 16 threads to 0.21 at 128 threads. This suggests that parallel overhead and imperfect load balance both matter as thread count rises. The adaptive schedule helps, but it cannot remove all synchronization, scheduling, and reduction costs. At high thread counts, each extra thread contributes less useful work than earlier ones.
+My measured times were 3.54 s at 1 thread, 0.38 s at 16 threads, 0.20 s at 64 threads, and 0.13 s at 128 threads. That gives speedups of 9.32x, 17.70x, and 27.23x respectively. The efficiency falls from 0.58 at 16 threads to 0.21 at 128 threads. This suggests that parallel overhead and imperfect load balance both matter as thread count rises. The adaptive schedule helps, but it cannot remove all synchronization, scheduling, and reduction costs. At high thread counts, each extra thread contributes less useful work than earlier ones.
 
 ## Section 3 — Roofline position
 
@@ -32,10 +32,10 @@ My best measured point was 128 threads at 0.13 s. Using a conservative lower-bou
 
 You have two more days. What would you change about `integrate.cpp`? Pick one concrete change and predict its effect. Minimum 50 words.
 
-If I had two more days, I would compare `dynamic, 64` against `guided` and a few nearby chunk sizes such as `dynamic, 32` and `dynamic, 128` on the same Rome node. The most likely benefit would be a better balance between load balancing and scheduling overhead. Smaller chunks may spread the expensive `[0.3, 0.4]` region more evenly, but they also increase runtime overhead. Larger chunks may reduce overhead, but risk bringing back imbalance. I would expect careful schedule tuning to improve high-thread performance more than low-thread performance.
+If I had two more days, I would compare (dynamic, 64) against guided and a few nearby chunk sizes such as (dynamic, 32) and (dynamic, 128) on the same Rome node. The most likely benefit would be a better balance between load balancing and scheduling overhead. Smaller chunks may spread the cost more evenly, but they also increase runtime overhead. Larger chunks may reduce overhead, but risk bringing back imbalance. I would expect careful schedule tuning to improve high-thread performance more than low-thread performance.
 
 ## Reasoning question (instructor-marked, ≤100 words)
 
 **In at most 100 words, explain why your chosen schedule is appropriate for the cost structure of this particular `f(x)`.**
 
-`dynamic, 64` fits this loop because the cost of `f(x)` is not uniform: iterations in `x in [0.3, 0.4]` do extra square-root work, so a static split can leave one thread with a heavier chunk. Dynamic scheduling lets idle threads take new chunks as soon as they finish, which improves balance. A chunk size of 64 is a compromise: it is small enough to spread the expensive region across the team, but large enough to avoid the high overhead of very tiny chunks.
+(dynamic, 64) fits this loop because the cost of f(x) is not uniform: iterations in x ∈ [0.3, 0.4] do extra square-root work, so a static split can leave one thread with a heavier chunk. Dynamic scheduling lets idle threads take new chunks as soon as they finish, which improves balance. A chunk size of 64 is a compromise: it is small enough to spread the expensive region across the team, but large enough to avoid the high overhead of very tiny chunks.
